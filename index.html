@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pinterest Pin Generator (Auto Etsy Scraper)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Pinterest Pin Generator<br>(Auto Etsy → HD Pins)</h2>
+
+    <input id="etsyURL" type="text" placeholder="Paste Etsy listing URL…">
+    <button onclick="fetchEtsyData()">Generate Pins</button>
+
+    <h3 id="loading" style="display:none;">Fetching Etsy data… please wait…</h3>
+
+    <div id="pinsContainer"></div>
+
+    <h3>Pinterest SEO</h3>
+    <textarea id="seoTitle" readonly></textarea>
+    <textarea id="seoDescription" readonly></textarea>
+    <textarea id="seoKeywords" readonly></textarea>
+    <textarea id="seoHashtags" readonly></textarea>
+</div>
+
+<script src="script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</body>
+</html>

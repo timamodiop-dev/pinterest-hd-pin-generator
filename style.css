@@ -1,0 +1,74 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+.container {
+    width: 450px;
+    margin: auto;
+}
+
+input, button, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+button {
+    background: #e60023;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #b8001c;
+}
+
+#pinsContainer {
+    margin-top: 20px;
+}
+
+.pinCard {
+    margin-bottom: 40px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+.pinCanvas {
+    width: 1200px;
+    height: 1800px;
+    margin: auto;
+    background: white;
+    position: relative;
+}
+
+.pinImage {
+    width: 100%;
+    height: auto;
+}
+
+.pinText {
+    position: absolute;
+    bottom: 40px;
+    width: 100%;
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.subtitle {
+    font-size: 32px;
+    margin-top: 10px;
+    display: block;
+}
+
+textarea {
+    width: 100%;
+    margin-top: 10px;
+}
