@@ -9,24 +9,31 @@ export async function handler(event) {
     // Fetch Etsy HTML
     const html = await fetch(url).then(res => res.text());
 
-    // Extract the JSON data that contains images
-    const jsonMatch = html.match(/"images":(\[.*?\])/s);
-    if (!jsonMatch)
-      return { statusCode: 400, body: JSON.stringify({ error: "Images JSON not found" }) };
+    // Extract ANY Etsy embedded JSON that contains images
+const jsonMatch = html.match(/"listingImages":(\[.*?\])/s);
 
-    const imagesJSON = JSON.parse(jsonMatch[1]);
-    if (!imagesJSON.length)
-      return { statusCode: 400, body: JSON.stringify({ error: "No images found" }) };
+if (!jsonMatch) {
+    return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Images JSON not found" })
+    };
+}
 
-    // Extract highest-quality full image
-    const firstImage =
-      imagesJSON[0].url_fullxfull ||
-      imagesJSON[0].url_170x135 ||
-      imagesJSON[0].url_570xN ||
-      null;
+const imagesJSON = JSON.parse(jsonMatch[1]);
 
-    if (!firstImage)
-      return { statusCode: 400, body: JSON.stringify({ error: "Image URL missing" }) };
+if (!imagesJSON.length) {
+    return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "No images found" })
+    };
+}
+
+// Pick the full-size image
+const firstImage =
+    imagesJSON[0].url_fullxfull ||
+    imagesJSON[0].url_170x135 ||
+    imagesJSON[0].url_570xN ||
+    null;
 
     // Extract product title
     const titleMatch = html.match(/<meta property="og:title" content="(.*?)"/);
