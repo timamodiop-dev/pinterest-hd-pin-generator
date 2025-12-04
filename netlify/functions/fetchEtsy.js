@@ -5,8 +5,10 @@ export async function handler(event) {
         const { url } = JSON.parse(event.body || "{}");
         if (!url) return { statusCode: 400, body: "Missing Etsy URL" };
 
+        // Fetch Etsy HTML
         const html = await fetch(url).then(res => res.text());
 
+        // Extract HD images
         const imgRegex = /https:\/\/i\.etsystatic\.com\/[^"]+fullxfull[^"]+/g;
         const images = html.match(imgRegex);
 
@@ -17,6 +19,7 @@ export async function handler(event) {
             };
         }
 
+        // Extract product title
         const titleRegex = /<meta property="og:title" content="([^"]+)"/;
         const titleMatch = html.match(titleRegex);
         const title = titleMatch ? titleMatch[1] : "Untitled Product";
@@ -24,7 +27,7 @@ export async function handler(event) {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                image: images[0],
+                image: images[0],   // FIRST HD image
                 title: title
             })
         };
