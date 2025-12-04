@@ -1,37 +1,35 @@
 import fetch from "node-fetch";
 
 export async function handler(event) {
-  try {
-    const { url } = JSON.parse(event.body || "{}");
-    if (!url) return { statusCode: 400, body: "Missing Etsy URL" };
+    try {
+        const { url } = JSON.parse(event.body || "{}");
+        if (!url) return { statusCode: 400, body: "Missing Etsy URL" };
 
-    // Extract listing ID from URL
-    const match = url.match(/listing\/(\d+)/);
-    if (!match) return { statusCode: 400, body: "Invalid Etsy URL" };
+        const html = await fetch(url).then(res => res.text());
 
-    const listingId = match[1];
+        const imgRegex = /https:\/\/i\.etsystatic\.com\/[^"]+fullxfull[^"]+/g;
+        const images = html.match(imgRegex);
 
-    // Fetch Etsy HTML page
-    const html = await fetch(url).then(res => res.text());
+        if (!images || images.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: "No images found" })
+            };
+        }
 
-    // Extract FIRST available full-size image
-    const imgRegex = /https:\/\/i\.etsystatic\.com\/[^"]+fullxfull[^"]+/g;
-    const images = html.match(imgRegex);
+        const titleRegex = /<meta property="og:title" content="([^"]+)"/;
+        const titleMatch = html.match(titleRegex);
+        const title = titleMatch ? titleMatch[1] : "Untitled Product";
 
-    if (!images || images.length === 0) {
-      return { statusCode: 404, body: "No images found" };
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                image: images[0],
+                title: title
+            })
+        };
+
+    } catch (err) {
+        return { statusCode: 500, body: "Server Error" };
     }
-
-    // Return the first best-quality image URL
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: images[0] })
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: "Server error: " + err.message
-    };
-  }
 }
