@@ -1,37 +1,46 @@
-import fetch from "node-fetch";
-
-export async function handler(event) {
-  try {
-    const { url } = JSON.parse(event.body || "{}");
-    if (!url) return { statusCode: 400, body: "Missing Etsy URL" };
-
-    // Extract listing ID from URL
-    const match = url.match(/listing\/(\d+)/);
-    if (!match) return { statusCode: 400, body: "Invalid Etsy URL" };
-
-    const listingId = match[1];
-
-    // Fetch Etsy HTML page
-    const html = await fetch(url).then(res => res.text());
-
-    // Extract FIRST available full-size image
-    const imgRegex = /https:\/\/i\.etsystatic\.com\/[^"]+fullxfull[^"]+/g;
-    const images = html.match(imgRegex);
-
-    if (!images || images.length === 0) {
-      return { statusCode: 404, body: "No images found" };
+async function fetchEtsyData() {
+    const url = document.getElementById("etsyURL").value.trim();
+    if (!url) {
+        alert("Please paste an Etsy listing URL.");
+        return;
     }
 
-    // Return the first best-quality image URL
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: images[0] })
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: "Server error: " + err.message
-    };
-  }
+    document.getElementById("loading").style.display = "block";
+
+    try {
+        // Call Netlify backend function
+        const response = await fetch("/.netlify/functions/fetchEtsy", {
+            method: "POST",
+            body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+        document.getElementById("loading").style.display = "none";
+
+        if (!data.image) {
+            alert("No valid image found.");
+            return;
+        }
+
+        document.getElementById("productImage").src = data.image;
+        generateSEO(data.title);
+    } 
+    catch (error) {
+        document.getElementById("loading").style.display = "none";
+        alert("Error fetching Etsy data.");
+    }
 }
+
+function generateSEO(title) {
+    const line1 = `${title} | Pinterest Pin`;
+    const line2 = `Discover ${title} – perfect for Etsy shoppers looking for unique finds.`;
+    const line3 = `${title}, trending item, aesthetic vibes`;
+    const line4 = `#etsy #shopping #fashion`;
+
+    document.getElementById("seo1").value = line1;
+    document.getElementById("seo2").value = line2;
+    document.getElementById("seo3").value = line3;
+    document.getElementById("seo4").value = line4;
+}
+
+document.getElementById("generateBtn").addEventListener("click", fetchEtsyData);
