@@ -1,65 +1,37 @@
-async function fetchEtsyData() {
-    const url = document.getElementById("etsyURL").value;
-    if (!url) return alert("Please paste an Etsy URL.");
+import fetch from "node-fetch";
 
-    document.getElementById("loading").style.display = "block";
+export async function handler(event) {
+  try {
+    const { url } = JSON.parse(event.body || "{}");
+    if (!url) return { statusCode: 400, body: "Missing Etsy URL" };
 
-    const response = await fetch("/.netlify/functions/fetchEtsy?url=" + encodeURIComponent(url));
-    const data = await response.json();
+    // Extract listing ID from URL
+    const match = url.match(/listing\/(\d+)/);
+    if (!match) return { statusCode: 400, body: "Invalid Etsy URL" };
 
-    document.getElementById("loading").style.display = "none";
+    const listingId = match[1];
 
-    if (!data.images || data.images.length === 0) {
-        return alert("No images found.");
+    // Fetch Etsy HTML page
+    const html = await fetch(url).then(res => res.text());
+
+    // Extract FIRST available full-size image
+    const imgRegex = /https:\/\/i\.etsystatic\.com\/[^"]+fullxfull[^"]+/g;
+    const images = html.match(imgRegex);
+
+    if (!images || images.length === 0) {
+      return { statusCode: 404, body: "No images found" };
     }
 
-    generateSEO(data);
-    generatePins(data);
-}
-
-function generateSEO(data) {
-    document.getElementById("seoTitle").value = data.title;
-    document.getElementById("seoDescription").value = data.description.slice(0, 250);
-    document.getElementById("seoKeywords").value = data.tags.join(", ");
-    document.getElementById("seoHashtags").value = data.tags.map(t => "#" + t.replace(/\s+/g,"")).join(" ");
-}
-
-function generatePins(data) {
-    const container = document.getElementById("pinsContainer");
-    container.innerHTML = "";
-
-    data.images.forEach((imgURL, index) => {
-        const card = document.createElement("div");
-        card.className = "pinCard";
-
-        const canvasDiv = document.createElement("div");
-        canvasDiv.className = "pinCanvas";
-        canvasDiv.id = "pinCanvas" + index;
-
-        canvasDiv.innerHTML = `
-            <img src="${imgURL}" class="pinImage">
-            <div class="pinText">
-                ${data.title}
-                <span class="subtitle">✨ Cozy • Inspirational • Bestseller ✨</span>
-            </div>
-        `;
-
-        card.appendChild(canvasDiv);
-
-        const btn = document.createElement("button");
-        btn.innerText = "Download Pin " + (index + 1);
-        btn.onclick = () => downloadPin(canvasDiv);
-
-        card.appendChild(btn);
-        container.appendChild(card);
-    });
-}
-
-function downloadPin(target) {
-    html2canvas(target, { scale: 2 }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "pinterest-pin.png";
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+    // Return the first best-quality image URL
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: images[0] })
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      body: "Server error: " + err.message
+    };
+  }
 }
